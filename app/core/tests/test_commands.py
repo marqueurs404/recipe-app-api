@@ -4,7 +4,6 @@ from django.core.management import call_command
 from django.db.utils import OperationalError
 from django.test import TestCase
 
-
 # Testing a custom command that waits for db:
 # https://stackoverflow.com/questions/52621819/django-unit-test-wait-for-database
 # Django source code:
@@ -12,12 +11,15 @@ from django.test import TestCase
 # call_command:
 # https://docs.djangoproject.com/en/3.1/ref/django-admin/#django.core.management.call_command
 
+
+GET_ITEM_QUALIFIED_NAME = 'django.db.utils.ConnectionHandler.__getitem__'
+
+
 class CommandTests(TestCase):
-    gi_string = 'django.db.utils.ConnectionHandler.__getitem__'
 
     def test_wait_for_db_ready(self):
         """Test waiting for db when db is available"""
-        with patch(self.gi_string) as gi:
+        with patch(GET_ITEM_QUALIFIED_NAME) as gi:
             gi.return_value = True
             call_command('wait_for_db')
             self.assertEqual(gi.call_count, 1)
@@ -26,7 +28,7 @@ class CommandTests(TestCase):
     @patch('time.sleep', return_value=True)
     def test_wait_for_db(self, ts):
         """Test waiting for db"""
-        with patch(self.gi_string) as gi:
+        with patch(GET_ITEM_QUALIFIED_NAME) as gi:
             gi.side_effect = [OperationalError] * 5 + [True]
             call_command('wait_for_db')
             self.assertEqual(gi.call_count, 6)
